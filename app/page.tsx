@@ -1,20 +1,21 @@
-"use client";
+"use client"
 
-import { Settings, Car, Calendar, Clock, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Footer } from "@/components/Footer";
-import { VehicleInfo } from "@/components/VehicleInfo";
-import { useState } from "react";
-import { VehicleData } from "@/lib/types";
+import { Settings, Car, Calendar, Clock, CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Footer } from "@/components/Footer"
+import { useState } from "react"
+import { VehicleData } from "@/lib/types"
+import { useToast } from "@/components/ui/use-toast"
+import { VehicleDetails } from "@/components/VehicleDetails"
 
 export default function BookingSystem() {
-  const [regNumber, setRegNumber] = useState("");
-  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [regNumber, setRegNumber] = useState("")
+  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
   const steps = [
     { num: 1, text: "Registreringsnummer", icon: Car },
@@ -22,16 +23,20 @@ export default function BookingSystem() {
     { num: 3, text: "Vælg dato", icon: Calendar },
     { num: 4, text: "Vælg tid", icon: Clock },
     { num: 5, text: "Bekræft", icon: CheckCircle },
-  ];
+  ]
 
   const fetchVehicleData = async () => {
     if (!regNumber.trim()) {
-      setError("Indtast venligst et registreringsnummer");
-      return;
+      toast({
+        variant: "destructive",
+        title: "Fejl",
+        description: "Indtast venligst et registreringsnummer",
+      })
+      return
     }
 
-    setLoading(true);
-    setError("");
+    setLoading(true)
+    setVehicleData(null)
 
     try {
       const response = await fetch(
@@ -42,21 +47,33 @@ export default function BookingSystem() {
             "Content-Type": "application/json"
           },
         }
-      );
+      )
 
       if (!response.ok) {
-        throw new Error("Kunne ikke finde køretøjet");
+        throw new Error("Kunne ikke finde køretøjet")
       }
 
-      const result = await response.json();
-      setVehicleData(result.data);
+      const result = await response.json()
+      if (result.data) {
+        setVehicleData(result.data)
+        toast({
+          title: "Success",
+          description: "Køretøjsoplysninger hentet",
+        })
+      } else {
+        throw new Error("Ingen data fundet for dette køretøj")
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Der opstod en fejl");
-      setVehicleData(null);
+      toast({
+        variant: "destructive",
+        title: "Fejl",
+        description: err instanceof Error ? err.message : "Der opstod en fejl",
+      })
+      setVehicleData(null)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
@@ -103,12 +120,12 @@ export default function BookingSystem() {
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Booking Form */}
+          {/* Booking Form and Vehicle Info */}
           <Card className="lg:col-span-2 border-0 shadow-sm">
             <CardHeader>
               <CardTitle>Book Syn</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   Indtast registreringsnummer
@@ -128,10 +145,14 @@ export default function BookingSystem() {
                     {loading ? "Søger..." : "Næste"}
                   </Button>
                 </div>
-                {error && (
-                  <p className="text-sm text-red-500">{error}</p>
-                )}
               </div>
+
+              {/* Vehicle Details */}
+              {vehicleData && (
+                <div className="pt-4 border-t">
+                  <VehicleDetails data={vehicleData} />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -173,9 +194,6 @@ export default function BookingSystem() {
           </div>
         </div>
 
-        {/* Vehicle Information */}
-        {vehicleData && <VehicleInfo data={vehicleData} />}
-
         {/* Admin Panel */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
@@ -210,5 +228,5 @@ export default function BookingSystem() {
 
       <Footer />
     </div>
-  );
+  )
 }
