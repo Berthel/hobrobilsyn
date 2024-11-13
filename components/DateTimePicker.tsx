@@ -94,14 +94,14 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
             disabled: [disabledDays]
           }}
           className="rounded-md border border-[#E8ECF8] bg-white"
-          styles={{
-            head_cell: { color: '#2E3192' },
-            cell: { color: '#2E3192' },
-            day_selected: { backgroundColor: '#FFD700', color: '#2E3192' },
-            day_today: { color: '#2E3192', fontWeight: 'bold' },
-            nav_button_previous: { color: '#2E3192' },
-            nav_button_next: { color: '#2E3192' },
-            caption: { color: '#2E3192' }
+          classNames={{
+            head_cell: "text-[#2E3192]",
+            cell: "text-[#2E3192]",
+            day_selected: "bg-[#FFD700] text-[#2E3192]",
+            day_today: "text-[#2E3192] font-bold",
+            nav_button_previous: "text-[#2E3192]",
+            nav_button_next: "text-[#2E3192]",
+            caption: "text-[#2E3192]"
           }}
         />
       </div>
