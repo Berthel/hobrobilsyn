@@ -10,7 +10,7 @@ import { useState } from "react"
 import { VehicleData } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 import { VehicleDetails } from "@/components/VehicleDetails"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { DateTimePicker } from "@/components/DateTimePicker"
 import { format } from "date-fns"
 import { da } from "date-fns/locale"
 
@@ -19,7 +19,7 @@ export default function BookingSystem() {
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null)
   const [loading, setLoading] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date>()
+  const [selectedDateTime, setSelectedDateTime] = useState<Date>()
   const { toast } = useToast()
 
   const steps = [
@@ -82,12 +82,12 @@ export default function BookingSystem() {
     }
   }
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date)
-    if (date) {
+  const handleDateTimeSelect = (date: Date | undefined, time: string | undefined) => {
+    setSelectedDateTime(date)
+    if (date && time) {
       toast({
-        title: "Dato valgt",
-        description: `Du har valgt ${format(date, "d. MMMM yyyy", { locale: da })}`,
+        title: "Tid valgt",
+        description: `Du har valgt ${format(date, "d. MMMM yyyy", { locale: da })} kl. ${time}`,
       })
     }
   }
@@ -164,20 +164,10 @@ export default function BookingSystem() {
                 </div>
               </div>
 
-              {/* Calendar */}
+              {/* Calendar and Time Picker */}
               {showCalendar && (
                 <div className="border rounded-lg p-4 bg-white">
-                  <h3 className="text-lg font-semibold mb-4">Vælg dato for syn</h3>
-                  <div className="flex justify-center">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={handleDateSelect}
-                      locale={da}
-                      disabled={{ before: new Date() }}
-                      className="rounded-md border"
-                    />
-                  </div>
+                  <DateTimePicker onSelect={handleDateTimeSelect} />
                 </div>
               )}
 
