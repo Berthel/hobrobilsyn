@@ -11,15 +11,14 @@ import { VehicleData } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 import { VehicleDetails } from "@/components/VehicleDetails"
 import { DateTimePicker } from "@/components/DateTimePicker"
-import { format } from "date-fns"
-import { da } from "date-fns/locale"
 
 export default function BookingSystem() {
   const [regNumber, setRegNumber] = useState("")
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null)
   const [loading, setLoading] = useState(false)
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [selectedDateTime, setSelectedDateTime] = useState<Date>()
+  const [showBooking, setShowBooking] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [selectedDateTime, setSelectedDateTime] = useState<{ date?: Date; time?: string }>({})
   const { toast } = useToast()
 
   const steps = [
@@ -29,6 +28,34 @@ export default function BookingSystem() {
     { num: 4, text: "Vælg tid", icon: Clock },
     { num: 5, text: "Bekræft", icon: CheckCircle },
   ]
+
+  const getAvailableCategories = (data: VehicleData) => {
+    const categories = []
+    
+    // Base categories available for all vehicles
+    categories.push({ value: "periodesyn", label: "Periodesyn" })
+    categories.push({ value: "omsyn", label: "Omsyn" })
+    
+    // Add categories based on vehicle type
+    if (data.kind?.toLowerCase().includes("påhængsvogn") || 
+        data.kind?.toLowerCase().includes("trailer")) {
+      categories.push({ value: "trailersyn", label: "Trailersyn" })
+    }
+    
+    if (data.kind?.toLowerCase().includes("motorcykel")) {
+      categories.push({ value: "motorcykel", label: "Motorcykelsyn" })
+    }
+    
+    // Add Toldsyn as it might be needed for any vehicle type
+    categories.push({ value: "toldsyn", label: "Toldsyn" })
+    
+    // Add battery test for electric vehicles
+    if (data.fuel_type?.toLowerCase().includes("el")) {
+      categories.push({ value: "batteritest", label: "Batteritest elbil" })
+    }
+    
+    return categories
+  }
 
   const fetchVehicleData = async () => {
     if (!regNumber.trim()) {
@@ -42,7 +69,7 @@ export default function BookingSystem() {
 
     setLoading(true)
     setVehicleData(null)
-    setShowCalendar(false)
+    setShowBooking(false)
 
     try {
       const response = await fetch(
@@ -62,7 +89,7 @@ export default function BookingSystem() {
       const result = await response.json()
       if (result.data) {
         setVehicleData(result.data)
-        setShowCalendar(true)
+        setShowBooking(true)
         toast({
           title: "Success",
           description: "Køretøjsoplysninger hentet",
@@ -83,13 +110,7 @@ export default function BookingSystem() {
   }
 
   const handleDateTimeSelect = (date: Date | undefined, time: string | undefined) => {
-    setSelectedDateTime(date)
-    if (date && time) {
-      toast({
-        title: "Tid valgt",
-        description: `Du har valgt ${format(date, "d. MMMM yyyy", { locale: da })} kl. ${time}`,
-      })
-    }
+    setSelectedDateTime({ date, time })
   }
 
   return (
@@ -97,7 +118,7 @@ export default function BookingSystem() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-white">
         <div className="container flex h-16 items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#2E4374]">
+          <h1 className="text-2xl font-bold text-[#2E3192]">
             Hobro Bilsyn
           </h1>
           <div className="flex items-center gap-4">
@@ -110,7 +131,7 @@ export default function BookingSystem() {
                 <SelectItem value="en">English</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-[#4361EE] hover:bg-[#3451DE]">Log ind</Button>
+            <Button className="bg-[#2E3192] hover:bg-[#1E2162]">Log ind</Button>
           </div>
         </div>
       </header>
@@ -123,14 +144,14 @@ export default function BookingSystem() {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-200 
                   ${
-                    step.num === (showCalendar ? 3 : 1)
-                      ? "bg-[#4361EE] text-white"
+                    step.num === 1
+                      ? "bg-[#2E3192] text-white"
                       : "bg-gray-200 text-gray-400"
                   }`}
               >
                 <step.icon className="w-5 h-5" />
               </div>
-              <span className="text-sm text-gray-600 font-medium">{step.text}</span>
+              <span className="text-sm text-gray-600 font-medium hidden md:block">{step.text}</span>
             </div>
           ))}
         </div>
@@ -143,39 +164,56 @@ export default function BookingSystem() {
               <CardTitle>Book Syn</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Indtast registreringsnummer
-                </label>
-                <div className="flex gap-2">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Indtast registreringsnummer
+                  </label>
                   <Input
                     placeholder="AB 12 345"
                     value={regNumber}
                     onChange={(e) => setRegNumber(e.target.value.toUpperCase())}
                     className="uppercase bg-white"
                   />
-                  <Button 
-                    onClick={fetchVehicleData}
-                    disabled={loading}
-                    className="bg-[#4361EE] hover:bg-[#3451DE] min-w-[100px]"
-                  >
-                    {loading ? "Søger..." : "Næste"}
-                  </Button>
                 </div>
+                <Button 
+                  onClick={fetchVehicleData}
+                  disabled={loading}
+                  className="bg-[#2E3192] hover:bg-[#1E2162] self-end"
+                >
+                  {loading ? "Søger..." : "Hent"}
+                </Button>
               </div>
 
-              {/* Calendar and Time Picker */}
-              {showCalendar && (
-                <div className="border rounded-lg p-4 bg-white">
-                  <DateTimePicker onSelect={handleDateTimeSelect} />
-                </div>
-              )}
+              {showBooking && vehicleData && (
+                <>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Vælg kategori
+                      </label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Vælg type af syn" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getAvailableCategories(vehicleData).map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              {/* Vehicle Details */}
-              {vehicleData && (
-                <div className="pt-4 border-t">
-                  <VehicleDetails data={vehicleData} />
-                </div>
+                  {selectedCategory && (
+                    <DateTimePicker 
+                      onSelect={handleDateTimeSelect}
+                      inspectionType={selectedCategory}
+                    />
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -191,63 +229,44 @@ export default function BookingSystem() {
                 <p className="text-sm text-gray-600">
                   Næste ledige tid: <span className="font-medium">I dag 14:30</span>
                 </p>
-                <Button className="w-full bg-[#4CAF50] hover:bg-[#43A047]">
+                <Button className="w-full bg-[#FFD700] hover:bg-[#FFE44D] text-[#2E3192]">
                   Book næste ledige tid
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Prices */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">Priser</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {[
-                  { name: "Periodesyn", price: "499" },
-                  { name: "Omsyn", price: "250" },
-                  { name: "Toldsyn", price: "1299" },
-                ].map((item) => (
-                  <div key={item.name} className="flex justify-between items-center">
-                    <span className="text-gray-600">{item.name}</span>
-                    <span className="font-medium">{item.price} kr</span>
+            {/* Vehicle Info Card */}
+            {vehicleData && (
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Køretøjsoplysninger</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mærke og model:</span>
+                    <span className="font-medium">{vehicleData.brand_and_model}</span>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Reg. nummer:</span>
+                    <span className="font-medium">{vehicleData.registration}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Første reg.:</span>
+                    <span className="font-medium">
+                      {new Date(vehicleData.first_registration_date).toLocaleDateString('da-DK')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Næste syn:</span>
+                    <span className="font-medium">
+                      {new Date(vehicleData.next_inspection_date_estimate).toLocaleDateString('da-DK')}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-
-        {/* Admin Panel */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-gray-600" />
-              <CardTitle>Administrator Panel</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { title: "Dagens Bookinger", value: "12", bg: "bg-[#EEF2FF]", text: "text-[#4361EE]" },
-                { title: "Ledige Tider", value: "8", bg: "bg-[#ECFDF5]", text: "text-[#4CAF50]" },
-                { title: "Forhandlere", value: "5", bg: "bg-[#FFF7ED]", text: "text-[#F97316]" },
-                { title: "Medarbejdere", value: "2", bg: "bg-[#FAF5FF]", text: "text-[#9333EA]" },
-              ].map((stat) => (
-                <Card key={stat.title} className={`border-0 ${stat.bg}`}>
-                  <CardContent className="pt-6">
-                    <div className="text-sm font-medium text-gray-600 mb-2">
-                      {stat.title}
-                    </div>
-                    <div className={`text-3xl font-bold ${stat.text}`}>
-                      {stat.value}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </main>
 
       <Footer />
