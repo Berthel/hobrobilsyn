@@ -10,11 +10,16 @@ import { useState } from "react"
 import { VehicleData } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 import { VehicleDetails } from "@/components/VehicleDetails"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { da } from "date-fns/locale"
 
 export default function BookingSystem() {
   const [regNumber, setRegNumber] = useState("")
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date>()
   const { toast } = useToast()
 
   const steps = [
@@ -37,6 +42,7 @@ export default function BookingSystem() {
 
     setLoading(true)
     setVehicleData(null)
+    setShowCalendar(false)
 
     try {
       const response = await fetch(
@@ -56,6 +62,7 @@ export default function BookingSystem() {
       const result = await response.json()
       if (result.data) {
         setVehicleData(result.data)
+        setShowCalendar(true)
         toast({
           title: "Success",
           description: "Køretøjsoplysninger hentet",
@@ -72,6 +79,16 @@ export default function BookingSystem() {
       setVehicleData(null)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date)
+    if (date) {
+      toast({
+        title: "Dato valgt",
+        description: `Du har valgt ${format(date, "d. MMMM yyyy", { locale: da })}`,
+      })
     }
   }
 
@@ -106,7 +123,7 @@ export default function BookingSystem() {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-200 
                   ${
-                    step.num === 1
+                    step.num === (showCalendar ? 3 : 1)
                       ? "bg-[#4361EE] text-white"
                       : "bg-gray-200 text-gray-400"
                   }`}
@@ -146,6 +163,23 @@ export default function BookingSystem() {
                   </Button>
                 </div>
               </div>
+
+              {/* Calendar */}
+              {showCalendar && (
+                <div className="border rounded-lg p-4 bg-white">
+                  <h3 className="text-lg font-semibold mb-4">Vælg dato for syn</h3>
+                  <div className="flex justify-center">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={handleDateSelect}
+                      locale={da}
+                      disabled={{ before: new Date() }}
+                      className="rounded-md border"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Vehicle Details */}
               {vehicleData && (
