@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_PUBLIC = "true"
+
+# Deaktiver secrets scanning for vores public environment variabler
+[secrets]
+  SECRETS_SCAN_OMIT_KEYS = ["NEXT_PUBLIC_*"]
