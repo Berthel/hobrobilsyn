@@ -30,7 +30,7 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Car className="w-5 h-5 text-[#4361EE]" />
-            <CardTitle>Køretøjsoplysninger</CardTitle>
+            <CardTitle>Køretøjsoplysninger • </CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -58,6 +58,10 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Type</p>
               <p className="font-medium">{data.kind || "Ikke tilgængelig"}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Årgang</p>
+              <p className="font-medium">{data.model_year || "Ikke tilgængelig"}</p>
             </div>
           </div>
         </CardContent>
