@@ -153,6 +153,7 @@ export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: 
               setIsBooked(false)
               setSelectedDate(undefined)
               setSelectedTime(undefined)
+              onSelect(undefined, undefined)
             }}
           >
             Book en ny tid

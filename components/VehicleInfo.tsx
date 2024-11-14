@@ -11,7 +11,12 @@ interface VehicleInfoProps {
 }
 
 export function VehicleInfo({ data }: VehicleInfoProps) {
-  if (!data) return null
+  console.log("VehicleInfo received data:", data)
+  
+  if (!data) {
+    console.log("No data provided to VehicleInfo")
+    return null
+  }
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Ikke tilgængelig"
@@ -26,14 +31,14 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
   return (
     <div className="space-y-6">
       {/* Vehicle Overview */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
+      <Card>
+        <CardHeader className="border-b">
           <div className="flex items-center gap-2">
-            <Car className="w-5 h-5 text-[#4361EE]" />
-            <CardTitle>Køretøjsoplysninger</CardTitle>
+            <Car className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Køretøjsoplysninger</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Mærke og model</p>
@@ -59,19 +64,23 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
               <p className="text-sm text-gray-500">Type</p>
               <p className="font-medium">{data.kind || "Ikke tilgængelig"}</p>
             </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Årgang</p>
+              <p className="font-medium">{data.model_year || "Ikke tilgængelig"}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Inspection Status */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
+      <Card>
+        <CardHeader className="border-b">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-[#4361EE]" />
-            <CardTitle>Synsstatus</CardTitle>
+            <CheckCircle2 className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Synsstatus</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Seneste syn</p>
@@ -91,14 +100,14 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
 
       {/* Inspection History */}
       {data.inspections && data.inspections.length > 0 && (
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
+        <Card>
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#4361EE]" />
-              <CardTitle>Synshistorik</CardTitle>
+              <Calendar className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">Synshistorik</CardTitle>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="space-y-4">
               {data.inspections.map((inspection) => (
                 <div
@@ -141,14 +150,14 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
 
       {/* Additional Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
+        <Card>
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
-              <Gauge className="w-5 h-5 text-[#4361EE]" />
-              <CardTitle>Kilometerstand</CardTitle>
+              <Gauge className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">Kilometerstand</CardTitle>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="space-y-1">
                 <p className="text-sm text-gray-500">Aktuel kilometerstand</p>
@@ -167,21 +176,21 @@ export function VehicleInfo({ data }: VehicleInfoProps) {
         </Card>
 
         {data.extra_equipment && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
+          <Card>
+            <CardHeader className="border-b">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#4361EE]" />
-                <CardTitle>Udstyr</CardTitle>
+                <Award className="w-5 h-5 text-primary" />
+                <CardTitle className="text-lg">Udstyr</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="space-y-2">
                 {data.extra_equipment.split(", ").map((item, index) => (
                   <div
                     key={index}
                     className="flex items-center gap-2 text-sm text-gray-700"
                   >
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#4361EE]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                     {item}
                   </div>
                 ))}
