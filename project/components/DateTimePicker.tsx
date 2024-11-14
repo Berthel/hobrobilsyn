@@ -6,6 +6,7 @@ import { format, isWeekend, startOfToday, isBefore, setHours, setMinutes } from 
 import { da } from "date-fns/locale"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/components/ui/use-toast"
 
 interface DateTimePickerProps {
   onSelect: (date: Date | undefined, time: string | undefined) => void
@@ -15,6 +16,7 @@ interface DateTimePickerProps {
 export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
+  const { toast } = useToast()
 
   const getAvailableTimes = (date: Date) => {
     const times = []
@@ -93,6 +95,16 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
     }
   }
 
+  const handleBooking = () => {
+    if (selectedDate && selectedTime) {
+      const formattedDate = format(selectedDate, 'd. MMMM yyyy', { locale: da })
+      toast({
+        title: "Tid booket!",
+        description: `Din tid er booket til ${formattedDate} kl. ${selectedTime}`,
+      })
+    }
+  }
+
   const disabledDays = (date: Date) => {
     return isWeekend(date) || isBefore(date, startOfToday())
   }
@@ -131,36 +143,49 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
         />
       </div>
 
-      {selectedDate && (
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold mb-4 text-[#2E3192]">
-            Vælg tidspunkt
-            {inspectionType === 'toldsyn' && (
-              <span className="text-sm font-normal ml-2 text-[#6B7280]">(60 min)</span>
+      <div className="flex-1">
+        {selectedDate && (
+          <>
+            <h3 className="text-lg font-semibold mb-4 text-[#2E3192]">
+              Vælg tidspunkt
+              {inspectionType === 'toldsyn' && (
+                <span className="text-sm font-normal ml-2 text-[#6B7280]">(60 min)</span>
+              )}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {getAvailableTimes(selectedDate).map((time) => (
+                <Button
+                  key={time}
+                  variant="outline"
+                  className={cn(
+                    "w-full border-[#E8ECF8] text-[#2E3192] hover:bg-[#F8F9FC]",
+                    selectedTime === time && "bg-[#FFD700] hover:bg-[#FFE44D] border-[#FFD700]"
+                  )}
+                  onClick={() => handleTimeSelect(time)}
+                >
+                  {time}
+                </Button>
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-[#6B7280]">
+              {selectedDate.getDay() === 5 
+                ? "Fredag: 08:00 - 14:00"
+                : "Mandag - Torsdag: 08:00 - 16:00"}
+            </p>
+
+            {selectedTime && (
+              <div className="mt-6">
+                <Button 
+                  className="w-full bg-[#2E3192] hover:bg-[#1E2162] text-white font-medium py-6"
+                  onClick={handleBooking}
+                >
+                  Book tid {format(selectedDate, 'd. MMMM', { locale: da })} kl. {selectedTime}
+                </Button>
+              </div>
             )}
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {getAvailableTimes(selectedDate).map((time) => (
-              <Button
-                key={time}
-                variant="outline"
-                className={cn(
-                  "w-full border-[#E8ECF8] text-[#2E3192] hover:bg-[#F8F9FC]",
-                  selectedTime === time && "bg-[#FFD700] hover:bg-[#FFE44D] border-[#FFD700]"
-                )}
-                onClick={() => handleTimeSelect(time)}
-              >
-                {time}
-              </Button>
-            ))}
-          </div>
-          <p className="mt-4 text-sm text-[#6B7280]">
-            {selectedDate.getDay() === 5 
-              ? "Fredag: 08:00 - 14:00"
-              : "Mandag - Torsdag: 08:00 - 16:00"}
-          </p>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
