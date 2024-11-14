@@ -2,7 +2,7 @@
 
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
-import { format, isWeekend, startOfToday, isBefore, setHours, setMinutes } from "date-fns"
+import { format, isWeekend, startOfToday, isBefore, isToday } from "date-fns"
 import { da } from "date-fns/locale"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -23,27 +23,29 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
     const dayOfWeek = date.getDay()
     const interval = inspectionType === 'toldsyn' ? 60 : 30
     const now = new Date()
-    const isToday = format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
+    const isCurrentDay = isToday(date)
     
     if (dayOfWeek === 5) { // Friday
       const endHour = 14
       for (let hour = 8; hour < endHour; hour++) {
         if (interval === 60) {
           if (hour < endHour - 1) { // Ensure there's a full hour available
-            // Skip times that have already passed today
-            if (!isToday || (hour > currentHour || (hour === currentHour && currentMinute < 0))) {
+            // For current day, only show future times
+            if (!isCurrentDay || hour > currentHour || (hour === currentHour && currentMinute < 0)) {
               times.push(`${hour.toString().padStart(2, '0')}:00`)
             }
           }
         } else {
           for (let minute of ['00', '30']) {
-            if (!(hour === endHour - 1 && minute === '30')) { // Skip 13:30 on Friday
-              // Skip times that have already passed today
-              if (!isToday || 
-                  (hour > currentHour || 
-                   (hour === currentHour && parseInt(minute) > currentMinute))) {
+            // Skip 13:30 on Friday
+            if (!(hour === endHour - 1 && minute === '30')) {
+              // For current day, only show future times
+              const timeInMinutes = (hour * 60) + parseInt(minute)
+              const currentTimeInMinutes = (currentHour * 60) + currentMinute
+              
+              if (!isCurrentDay || timeInMinutes > currentTimeInMinutes) {
                 times.push(`${hour.toString().padStart(2, '0')}:${minute}`)
               }
             }
@@ -56,18 +58,20 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
       for (let hour = 8; hour < endHour; hour++) {
         if (interval === 60) {
           if (hour < endHour - 1) { // Ensure there's a full hour available
-            // Skip times that have already passed today
-            if (!isToday || (hour > currentHour || (hour === currentHour && currentMinute < 0))) {
+            // For current day, only show future times
+            if (!isCurrentDay || hour > currentHour || (hour === currentHour && currentMinute < 0)) {
               times.push(`${hour.toString().padStart(2, '0')}:00`)
             }
           }
         } else {
           for (let minute of ['00', '30']) {
-            if (!(hour === endHour - 1 && minute === '30')) { // Skip 15:30
-              // Skip times that have already passed today
-              if (!isToday || 
-                  (hour > currentHour || 
-                   (hour === currentHour && parseInt(minute) > currentMinute))) {
+            // Skip 15:30
+            if (!(hour === endHour - 1 && minute === '30')) {
+              // For current day, only show future times
+              const timeInMinutes = (hour * 60) + parseInt(minute)
+              const currentTimeInMinutes = (currentHour * 60) + currentMinute
+              
+              if (!isCurrentDay || timeInMinutes > currentTimeInMinutes) {
                 times.push(`${hour.toString().padStart(2, '0')}:${minute}`)
               }
             }
