@@ -96,17 +96,14 @@ export default function BookingSystem() {
       // Byg den korrekte URL
       const url = `https://api.synsbasen.dk/v1/vehicles/registration/${cleanRegNumber}`
       
-      console.log("Environment variables:", {
-        apiKey: process.env.NEXT_PUBLIC_SYNSBASEN_API_KEY ? "Present" : "Missing"
-      })
-      console.log("Attempting to fetch from:", url)
+      console.log("Attempting to fetch vehicle data...")
 
-      const response = await fetch(url, {
-        headers: {
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SYNSBASEN_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-      })
+      const headers = {
+        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SYNSBASEN_API_KEY}`,
+        "Content-Type": "application/json"
+      }
+
+      const response = await fetch(url, { headers })
 
       console.log("Response status:", response.status)
 
