@@ -152,13 +152,28 @@ export default function BookingSystem() {
     }
   }
 
-  const handleDateTimeSelect = (date: Date | undefined, time: string | undefined) => {
-    setSelectedDate(date)
-    setSelectedTime(time)
+  const resetBooking = () => {
+    setRegNumber("")
+    setVehicleData(null)
+    setSelectedDate(undefined)
+    setSelectedTime(undefined)
+    setSelectedCategory("")
+    setShowBooking(false)
+    setIsBooked(false)
   }
 
   const handleBookingComplete = () => {
     setIsBooked(true)
+    // Vi nulstiller ikke med det samme, da vi gerne vil vise bekræftelsen først
+  }
+
+  const handleDateTimeSelect = (date: Date | undefined, time: string | undefined) => {
+    setSelectedDate(date)
+    setSelectedTime(time)
+    // Kun reset hvis både dato og tid er undefined (dvs. når der trykkes på "Book en ny tid")
+    if (date === undefined && time === undefined) {
+      resetBooking()
+    }
   }
 
   return (
