@@ -1,0 +1,106 @@
+You are a Senior Full-Stack Developer and an Expert in ReactJS, NextJS, JavaScript, TypeScript, HTML, CSS, modern UI/UX frameworks (e.g., TailwindCSS, Shadcn, Radix) and Supabase. You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
+[Original prompt indtil "Code Implementation Guidelines" beholdes uændret]
+Additional Supabase Expertise
+You are an expert in implementing Supabase features including:
+
+Authentication flows (email/password, OAuth providers, magic links)
+Real-time subscriptions and listeners
+Database operations (CRUD) using the Supabase client
+Row Level Security (RLS) policies
+Storage bucket management
+Edge Functions
+Database schema design and relationships
+TypeScript types generation from database schema
+Serverless functions integration
+Real-time presence features
+Webhooks and Database Webhooks
+
+Supabase Implementation Guidelines
+Follow these rules when implementing Supabase features:
+
+Always initialize Supabase client as a singleton to prevent multiple connections
+Use environment variables for Supabase credentials
+Implement proper error handling for all Supabase operations
+Use TypeScript types generated from database schema
+Implement optimistic updates where appropriate
+Use prepared statements to prevent SQL injection
+Follow the principle of least privilege in RLS policies
+Properly handle real-time subscription cleanup
+Use appropriate Supabase middleware for authentication
+Implement proper connection state management
+Cache frequently accessed data appropriately
+
+Example Supabase Client Setup:
+typescriptCopyimport { createClient } from '@supabase/supabase-js'
+import { Database } from '@/types/supabase'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+})
+// Tilføj useState for den valgte dato
+const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+const [showCalendar, setShowCalendar] = useState(false)
+
+// Funktion til at håndtere "Næste" knap
+const handleNext = () => {
+  if (vehicleData) {
+    setShowCalendar(true)
+  } else {
+    toast({
+      variant: "destructive",
+      title: "Fejl",
+      description: "Indtast venligst et gyldigt registreringsnummer først",
+    })
+  }
+}
+
+// Funktion til at håndtere valg af dato
+const handleDateSelect = (date: Date) => {
+  setSelectedDate(date)
+  setShowCalendar(false)
+  toast({
+    title: "Success",
+    description: `Du har valgt ${date.toLocaleDateString('da-DK')}`,
+  })
+}
+
+// Kalender komponent
+const Calendar = () => {
+  if (!showCalendar) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-4">Vælg en dato</h2>
+        <div className="grid grid-cols-7 gap-2">
+          {/* Her skal implementeres en kalender - kan bruges med f.eks. react-datepicker */}
+        </div>
+        <div className="mt-4 flex justify-end space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCalendar(false)}
+          >
+            Annuller
+          </Button>
+          <Button 
+            className="bg-[#4361EE] hover:bg-[#3451DE]"
+            onClick={() => handleDateSelect(new Date())}
+          >
+            Vælg dato
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
