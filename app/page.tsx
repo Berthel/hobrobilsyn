@@ -19,6 +19,7 @@ export default function BookingSystem() {
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
+  const [isBooked, setIsBooked] = useState(false)
   const { toast } = useToast()
 
   const getCurrentStep = () => {
@@ -40,11 +41,11 @@ export default function BookingSystem() {
   const getStepStyle = (stepNum: number) => {
     const currentStep = getCurrentStep()
     if (stepNum < currentStep) return "bg-[#2E3192] text-white" // Completed steps
-    if (stepNum === currentStep) return "bg-[#FFD700] text-[#2E3192]" // Current step
+    if (stepNum === currentStep && !isBooked) return "bg-[#FFD700] text-[#2E3192]" // Current step
+    if (stepNum === 5 && isBooked) return "bg-[#2E3192] text-white" // Confirmed booking
     return "bg-gray-200 text-gray-400" // Future steps
   }
 
-  // Rest of the existing functions remain the same...
   const getAvailableCategories = (vehicle: VehicleData) => {
     const categories = []
     
@@ -88,6 +89,7 @@ export default function BookingSystem() {
     setSelectedCategory("")
     setSelectedDate(undefined)
     setSelectedTime(undefined)
+    setIsBooked(false)
 
     try {
       const response = await fetch(
@@ -130,6 +132,10 @@ export default function BookingSystem() {
   const handleDateTimeSelect = (date: Date | undefined, time: string | undefined) => {
     setSelectedDate(date)
     setSelectedTime(time)
+  }
+
+  const handleBookingComplete = () => {
+    setIsBooked(true)
   }
 
   return (
@@ -223,6 +229,7 @@ export default function BookingSystem() {
                 <DateTimePicker 
                   onSelect={handleDateTimeSelect}
                   inspectionType={selectedCategory}
+                  onBookingComplete={handleBookingComplete}
                 />
               )}
             </CardContent>

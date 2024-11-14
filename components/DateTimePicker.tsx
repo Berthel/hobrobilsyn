@@ -11,9 +11,10 @@ import { useToast } from "@/components/ui/use-toast"
 interface DateTimePickerProps {
   onSelect: (date: Date | undefined, time: string | undefined) => void
   inspectionType?: string
+  onBookingComplete?: () => void
 }
 
-export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps) {
+export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
   const { toast } = useToast()
@@ -106,6 +107,9 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
         title: "Tid booket!",
         description: `Din tid er booket til ${formattedDate} kl. ${selectedTime}`,
       })
+      if (onBookingComplete) {
+        onBookingComplete()
+      }
     }
   }
 
