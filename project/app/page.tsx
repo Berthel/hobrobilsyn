@@ -94,9 +94,11 @@ export default function BookingSystem() {
       const cleanRegNumber = regNumber.replace(/\s+/g, "")
       
       // Byg den korrekte URL
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.synsbasen.dk/v1"
-      const url = `${baseUrl}/registration/${cleanRegNumber}`
+      const url = `https://api.synsbasen.dk/v1/vehicles/registration/${cleanRegNumber}`
       
+      console.log("Environment variables:", {
+        apiKey: process.env.NEXT_PUBLIC_SYNSBASEN_API_KEY ? "Present" : "Missing"
+      })
       console.log("Attempting to fetch from:", url)
 
       const response = await fetch(url, {
@@ -106,7 +108,12 @@ export default function BookingSystem() {
         },
       })
 
+      console.log("Response status:", response.status)
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.log("Error response:", errorText)
+        
         if (response.status === 404) {
           throw new Error("Køretøjet blev ikke fundet. Tjek venligst registreringsnummeret.")
         } else if (response.status === 401) {

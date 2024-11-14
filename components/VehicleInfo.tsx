@@ -11,7 +11,12 @@ interface VehicleInfoProps {
 }
 
 export function VehicleInfo({ data }: VehicleInfoProps) {
-  if (!data) return null
+  console.log("VehicleInfo received data:", data)
+  
+  if (!data) {
+    console.log("No data provided to VehicleInfo")
+    return null
+  }
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Ikke tilgængelig"
