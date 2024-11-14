@@ -23,4 +23,4 @@ export function BookingSteps({ currentStep, steps }: StepProps) {
       ))}
     </div>
   )
-} 
+}
