@@ -92,18 +92,32 @@ export default function BookingSystem() {
     setIsBooked(false)
 
     try {
-      const response = await fetch(
-        `https://api.synsbasen.dk/v1/vehicles/registration/${regNumber.replace(/\s+/g, "")}`,
-        {
-          headers: {
-            "Authorization": "Bearer sb_sk_a995d948451c410e11a77326527a4689",
-            "Content-Type": "application/json"
-          },
-        }
-      )
+      // Fjern eventuelle mellemrum fra registreringsnummeret
+      const cleanRegNumber = regNumber.replace(/\s+/g, "")
+      
+      // Byg den korrekte URL
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.synsbasen.dk/v1"
+      const url = `${baseUrl}/vehicles/registration/${cleanRegNumber}`
+      
+      console.log("Attempting to fetch from:", url)
+
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SYNSBASEN_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+      })
+
+      console.log("Response status:", response.status)
 
       if (!response.ok) {
-        throw new Error("Kunne ikke finde køretøjet")
+        if (response.status === 404) {
+          throw new Error("Køretøjet blev ikke fundet. Tjek venligst registreringsnummeret.")
+        } else if (response.status === 401) {
+          throw new Error("Kunne ikke få adgang til Synsbasen. Kontakt venligst support.")
+        } else {
+          throw new Error(`Der opstod en fejl: ${response.statusText}`)
+        }
       }
 
       const result = await response.json()
@@ -188,13 +202,22 @@ export default function BookingSystem() {
                   </label>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="AB 12 345"
+                      placeholder="Indtast registreringsnummer"
                       value={regNumber}
                       onChange={(e) => setRegNumber(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          fetchVehicleData()
+                        }
+                      }}
                       className="uppercase bg-white w-48"
                     />
                     <Button 
-                      onClick={fetchVehicleData}
+                      onClick={() => {
+                        console.log("Button clicked")
+                        fetchVehicleData()
+                      }}
                       disabled={loading}
                       className="bg-[#2E3192] hover:bg-[#1E2162] h-10 whitespace-nowrap"
                     >
