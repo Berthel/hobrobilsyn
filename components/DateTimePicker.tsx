@@ -7,6 +7,7 @@ import { da } from "date-fns/locale"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
+import { CheckCircle } from "lucide-react"
 
 interface DateTimePickerProps {
   onSelect: (date: Date | undefined, time: string | undefined) => void
@@ -17,6 +18,7 @@ interface DateTimePickerProps {
 export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
+  const [isBooked, setIsBooked] = useState(false)
   const { toast } = useToast()
 
   const getAvailableTimes = (date: Date) => {
@@ -107,6 +109,7 @@ export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: 
         title: "Tid booket!",
         description: `Din tid er booket til ${formattedDate} kl. ${selectedTime}`,
       })
+      setIsBooked(true)
       if (onBookingComplete) {
         onBookingComplete()
       }
@@ -115,6 +118,48 @@ export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: 
 
   const disabledDays = (date: Date) => {
     return isWeekend(date) || isBefore(date, startOfToday())
+  }
+
+  if (isBooked && selectedDate && selectedTime) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#2E3192] flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-white" />
+        </div>
+        <div className="text-center space-y-2">
+          <h3 className="text-2xl font-semibold text-[#2E3192]">Booking bekræftet!</h3>
+          <p className="text-gray-600">
+            Din tid er booket til {format(selectedDate, 'd. MMMM yyyy', { locale: da })} kl. {selectedTime}
+          </p>
+          {inspectionType && (
+            <p className="text-gray-600">Type: {inspectionType}</p>
+          )}
+        </div>
+        <div className="w-full max-w-sm space-y-4">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-[#2E3192] mb-2">Husk at medbringe:</h4>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>• Bilens registreringsattest</li>
+              <li>• Gyldig legitimation</li>
+              {inspectionType === 'toldsyn' && (
+                <li>• Relevant tolddokumentation</li>
+              )}
+            </ul>
+          </div>
+          <Button 
+            variant="outline"
+            className="w-full border-[#2E3192] text-[#2E3192] hover:bg-[#2E3192] hover:text-white"
+            onClick={() => {
+              setIsBooked(false)
+              setSelectedDate(undefined)
+              setSelectedTime(undefined)
+            }}
+          >
+            Book en ny tid
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
