@@ -2,20 +2,23 @@
 
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
-import { format, isWeekend, startOfToday, isBefore, setHours, setMinutes } from "date-fns"
+import { format, isWeekend, startOfToday, isBefore, isToday } from "date-fns"
 import { da } from "date-fns/locale"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
+import { CheckCircle } from "lucide-react"
 
 interface DateTimePickerProps {
   onSelect: (date: Date | undefined, time: string | undefined) => void
   inspectionType?: string
+  onBookingComplete?: () => void
 }
 
-export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps) {
+export function DateTimePicker({ onSelect, inspectionType, onBookingComplete }: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
+  const [isBooked, setIsBooked] = useState(false)
   const { toast } = useToast()
 
   const getAvailableTimes = (date: Date) => {
@@ -23,27 +26,29 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
     const dayOfWeek = date.getDay()
     const interval = inspectionType === 'toldsyn' ? 60 : 30
     const now = new Date()
-    const isToday = format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
+    const isCurrentDay = isToday(date)
     
     if (dayOfWeek === 5) { // Friday
       const endHour = 14
       for (let hour = 8; hour < endHour; hour++) {
         if (interval === 60) {
           if (hour < endHour - 1) { // Ensure there's a full hour available
-            // Skip times that have already passed today
-            if (!isToday || (hour > currentHour || (hour === currentHour && currentMinute < 0))) {
+            // For current day, only show future times
+            if (!isCurrentDay || hour > currentHour || (hour === currentHour && currentMinute < 0)) {
               times.push(`${hour.toString().padStart(2, '0')}:00`)
             }
           }
         } else {
           for (let minute of ['00', '30']) {
-            if (!(hour === endHour - 1 && minute === '30')) { // Skip 13:30 on Friday
-              // Skip times that have already passed today
-              if (!isToday || 
-                  (hour > currentHour || 
-                   (hour === currentHour && parseInt(minute) > currentMinute))) {
+            // Skip 13:30 on Friday
+            if (!(hour === endHour - 1 && minute === '30')) {
+              // For current day, only show future times
+              const timeInMinutes = (hour * 60) + parseInt(minute)
+              const currentTimeInMinutes = (currentHour * 60) + currentMinute
+              
+              if (!isCurrentDay || timeInMinutes > currentTimeInMinutes) {
                 times.push(`${hour.toString().padStart(2, '0')}:${minute}`)
               }
             }
@@ -56,18 +61,20 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
       for (let hour = 8; hour < endHour; hour++) {
         if (interval === 60) {
           if (hour < endHour - 1) { // Ensure there's a full hour available
-            // Skip times that have already passed today
-            if (!isToday || (hour > currentHour || (hour === currentHour && currentMinute < 0))) {
+            // For current day, only show future times
+            if (!isCurrentDay || hour > currentHour || (hour === currentHour && currentMinute < 0)) {
               times.push(`${hour.toString().padStart(2, '0')}:00`)
             }
           }
         } else {
           for (let minute of ['00', '30']) {
-            if (!(hour === endHour - 1 && minute === '30')) { // Skip 15:30
-              // Skip times that have already passed today
-              if (!isToday || 
-                  (hour > currentHour || 
-                   (hour === currentHour && parseInt(minute) > currentMinute))) {
+            // Skip 15:30
+            if (!(hour === endHour - 1 && minute === '30')) {
+              // For current day, only show future times
+              const timeInMinutes = (hour * 60) + parseInt(minute)
+              const currentTimeInMinutes = (currentHour * 60) + currentMinute
+              
+              if (!isCurrentDay || timeInMinutes > currentTimeInMinutes) {
                 times.push(`${hour.toString().padStart(2, '0')}:${minute}`)
               }
             }
@@ -102,11 +109,57 @@ export function DateTimePicker({ onSelect, inspectionType }: DateTimePickerProps
         title: "Tid booket!",
         description: `Din tid er booket til ${formattedDate} kl. ${selectedTime}`,
       })
+      setIsBooked(true)
+      if (onBookingComplete) {
+        onBookingComplete()
+      }
     }
   }
 
   const disabledDays = (date: Date) => {
     return isWeekend(date) || isBefore(date, startOfToday())
+  }
+
+  if (isBooked && selectedDate && selectedTime) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#2E3192] flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-white" />
+        </div>
+        <div className="text-center space-y-2">
+          <h3 className="text-2xl font-semibold text-[#2E3192]">Booking bekræftet!</h3>
+          <p className="text-gray-600">
+            Din tid er booket til {format(selectedDate, 'd. MMMM yyyy', { locale: da })} kl. {selectedTime}
+          </p>
+          {inspectionType && (
+            <p className="text-gray-600">Type: {inspectionType}</p>
+          )}
+        </div>
+        <div className="w-full max-w-sm space-y-4">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-[#2E3192] mb-2">Husk at medbringe:</h4>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>• Bilens registreringsattest</li>
+              <li>• Gyldig legitimation</li>
+              {inspectionType === 'toldsyn' && (
+                <li>• Relevant tolddokumentation</li>
+              )}
+            </ul>
+          </div>
+          <Button 
+            variant="outline"
+            className="w-full border-[#2E3192] text-[#2E3192] hover:bg-[#2E3192] hover:text-white"
+            onClick={() => {
+              setIsBooked(false)
+              setSelectedDate(undefined)
+              setSelectedTime(undefined)
+            }}
+          >
+            Book en ny tid
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
